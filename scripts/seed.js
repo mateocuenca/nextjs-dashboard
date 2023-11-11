@@ -1,13 +1,13 @@
 const { db } = require('@vercel/postgres');
 const {
-  invoices,
-  customers,
-  revenue,
-  users,
+  procesos,
+  // candidatos,
+  // revenue,
+  // users,
 } = require('../app/lib/placeholder-data.js');
-const bcrypt = require('bcrypt');
+// const bcrypt = require('bcrypt');
 
-async function seedUsers(client) {
+/* async function seedUsers(client) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
     // Create the "users" table if it doesn't exist
@@ -45,48 +45,46 @@ async function seedUsers(client) {
     throw error;
   }
 }
-
-async function seedInvoices(client) {
+ */
+async function seedProcesos(client) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
     // Create the "invoices" table if it doesn't exist
     const createTable = await client.sql`
-    CREATE TABLE IF NOT EXISTS invoices (
+    CREATE TABLE IF NOT EXISTS procesos (
     id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-    customer_id UUID NOT NULL,
-    amount INT NOT NULL,
-    status VARCHAR(255) NOT NULL,
-    date DATE NOT NULL
+    nombre VARCHAR NOT NULL,
+    descripcion VARCHAR NOT NULL,
   );
 `;
 
-    console.log(`Created "invoices" table`);
+    console.log(`Created "procesos" table`);
 
     // Insert data into the "invoices" table
-    const insertedInvoices = await Promise.all(
-      invoices.map(
-        (invoice) => client.sql`
-        INSERT INTO invoices (customer_id, amount, status, date)
-        VALUES (${invoice.customer_id}, ${invoice.amount}, ${invoice.status}, ${invoice.date})
+    const insertedProcesos = await Promise.all(
+      procesos.map(
+        (proceso) => client.sql`
+        INSERT INTO invoices (nombre, descripcion)
+        VALUES (${proceso.nombre}, ${proceso.descripcion})
         ON CONFLICT (id) DO NOTHING;
       `,
       ),
     );
 
-    console.log(`Seeded ${insertedInvoices.length} invoices`);
+    console.log(`Seeded ${insertedProcesos.length} procesos`);
 
     return {
       createTable,
-      invoices: insertedInvoices,
+      procesos: insertedProcesos,
     };
   } catch (error) {
-    console.error('Error seeding invoices:', error);
+    console.error('Error seeding procesos:', error);
     throw error;
   }
 }
 
-async function seedCustomers(client) {
+/* async function seedCandidatos(client) {
   try {
     await client.sql`CREATE EXTENSION IF NOT EXISTS "uuid-ossp"`;
 
@@ -94,9 +92,8 @@ async function seedCustomers(client) {
     const createTable = await client.sql`
       CREATE TABLE IF NOT EXISTS customers (
         id UUID DEFAULT uuid_generate_v4() PRIMARY KEY,
-        name VARCHAR(255) NOT NULL,
-        email VARCHAR(255) NOT NULL,
-        image_url VARCHAR(255) NOT NULL
+        nombre VARCHAR NOT NULL,
+        apellido VARCHAR NOT NULL,
       );
     `;
 
@@ -158,15 +155,15 @@ async function seedRevenue(client) {
     console.error('Error seeding revenue:', error);
     throw error;
   }
-}
+} */
 
 async function main() {
   const client = await db.connect();
 
-  await seedUsers(client);
-  await seedCustomers(client);
-  await seedInvoices(client);
-  await seedRevenue(client);
+  // await seedUsers(client);
+  // await seedCustomers(client);
+  await seedProcesos(client);
+  // await seedRevenue(client);
 
   await client.end();
 }
