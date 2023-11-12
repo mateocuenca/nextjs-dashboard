@@ -39,7 +39,8 @@ export function Card({
 
   return (
     <div className="rounded-xl bg-gradient-to-r from-violet-800 to-blue-400 p-2 shadow-sm">
-      <div className="flex p-4">
+      <div className="flex-col p-4">
+        <h3 className="ml-2 text-sm text-stone-50 font-medium">Título del puesto</h3>
         <h3 className="ml-2 text-sm text-stone-50 font-medium">{titulo}</h3>
       </div>
       {/* <p
