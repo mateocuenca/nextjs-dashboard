@@ -1,9 +1,9 @@
-import Modal from "../../ui/modal/modal";
+import Modal from "@/app/ui/modal/modal";
 
 export default function AddProcesoModal() {
     return (
         <Modal>
-            <p>Soy un modal</p>
+            <p>Este es un modal</p>
         </Modal>
     )
 }
