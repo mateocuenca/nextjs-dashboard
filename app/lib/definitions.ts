@@ -16,6 +16,12 @@ export type Customer = {
   image_url: string;
 };
 
+export type Proceso = {
+  id: string;
+  titulo: string;
+  descripcion: string;
+}
+
 export type Invoice = {
   id: string;
   customer_id: string;
