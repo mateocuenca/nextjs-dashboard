@@ -1,15 +1,13 @@
 import { workSans } from './ui/fonts';
 import './ui/global.css';
 
-export default function RootLayout({
-  children,
-}: {
+export default function RootLayout(props: {
   children: React.ReactNode;
 }) {
   return (
     <html lang="en">
       <body className={`${workSans.className} antialiased`}>
-        {children}
+        {props.children}
       </body>
     </html>
   );
