@@ -1,9 +1,11 @@
 import SideNav from "../ui/dashboard/sidenav";
 
 export default function Layout(
-    { children }: { children: React.ReactNode },
-
-
+    // { children }: { children: React.ReactNode },
+    props: {
+        children: React.ReactNode;
+        modal: React.ReactNode;
+    }
 ) {
     return (
         <div className="flex h-screen flex-col md:flex-row md:overflow-hidden">
@@ -11,7 +13,8 @@ export default function Layout(
                 <SideNav />
             </div>
             <div className="flex-grow p-6 md:overflow-y-auto md:p-12">
-                {children}
+                {props.modal}
+                {props.children}
             </div>
         </div>
     )

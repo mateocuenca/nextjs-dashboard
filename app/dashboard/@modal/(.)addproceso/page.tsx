@@ -1,9 +1,11 @@
+import AddProcesoForm from "@/app/ui/addproceso-form/addproceso-form";
 import Modal from "@/app/ui/modal/modal";
 
 export default function AddProcesoModal() {
+
     return (
         <Modal>
-            <p>Este es un modal</p>
-        </Modal>
+            <AddProcesoForm />
+        </Modal >
     )
 }
