@@ -1,5 +1,10 @@
-## Next.js App Router Course - Starter
+# Sistema de Gestión de Currículum Vitae con Inteligencia Artificial
 
-This is the starter template for the Next.js App Router Course. It contains the starting code for the dashboard application.
+Este repositorio contiene el código fuente del prototipo de Trabajo Final de Grado de la carrera Ingeniería en Software de la [Universidad Siglo 21](21.edu.ar). 
 
-For more information, see the [course curriculum](https://nextjs.org/learn) on the Next.js Website.
+ - Autor: **Mateo Rodriguez Cuenca**
+ - Legajo: SOF01455
+
+# Para acceder al despliegue
+
+Haga click [aquí](https://nextjs-dashboard-azure-nine.vercel.app/) para acceder al despligue del prototipo
