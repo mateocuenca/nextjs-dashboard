@@ -1,7 +1,7 @@
 import {google} from 'googleapis'
 
 // Configura tu cliente OAuth2 con el ID y el secreto obtenidos en Google Cloud Console
-const CLIENT_ID = '153485994273-erft01dtgl8dv4h01mm0bb7hde6n1n0o.apps.googleusercontent.com';
+const CLIENT_ID = '';
 const CLIENT_SECRET = '';
 const REDIRECT_URI = '';
 
