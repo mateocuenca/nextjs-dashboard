@@ -1,13 +1,14 @@
 import express from "express";
 
 import { addCandidateAnswer, deleteCandidateAnswer, editCandidateAnswer, getCandidateAnswer, getCandidateAnswers } from "../Controllers/candidateAnswersController.js";
+import {validateJWT} from "../Helpers/jwtValidator.js";
 
 const router = express.Router();
 
-router.get('/', getCandidateAnswers);
-router.get('/:id', getCandidateAnswer);
-router.post('/', addCandidateAnswer);
-router.put('/:id', editCandidateAnswer);
-router.delete('/:id', deleteCandidateAnswer);
+router.get('/', [validateJWT], getCandidateAnswers);
+router.get('/:id', [validateJWT], getCandidateAnswer);
+router.post('/', [validateJWT], addCandidateAnswer);
+router.put('/:id', [validateJWT], editCandidateAnswer);
+router.delete('/:id', [validateJWT], deleteCandidateAnswer);
 
 export default router;

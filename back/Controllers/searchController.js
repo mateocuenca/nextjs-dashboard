@@ -35,7 +35,7 @@ export const getSearch = async (req, res = response) => {
 export const addSearch = async (req, res = response) => {
     const name = req.body.name;
     const uuid = uuidv4() 
-    const states = ['pending', 'in course', 'interviews', 'discarded', 'finished']
+    const states = ['pendientes', 'en revisión', 'en entrevista', 'descartados', 'favoritos']
 
     try {
         const conn = await connection.getConnection();

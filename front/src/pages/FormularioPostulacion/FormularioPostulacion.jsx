@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import {useState, useEffect} from 'react';
 import {
     Stepper, Box, Step, StepLabel, Button
 } from '@mui/material';
@@ -33,10 +33,19 @@ export default function FormularioPostulacion() {
     const [error, setError] = useState('');
     const [searchData, setSearchData] = useState({});
     const [questions, setQuestions] = useState({});
+    const [success, setSuccess] = useState(false);
+
+    // Pasos
+    const steps = [
+        "Seleccionar CV",
+        "Validar datos",
+        ...(Object.keys(questions).length > 0 ? ["Responder preguntas"] : []),
+        "Confirmar datos"
+    ];
 
     const handleInputChange = (event) => {
-        const { name, files, value, type } = event.target;
-    
+        const {name, files, value, type} = event.target;
+
         if (type === 'file') {
             const reader = new FileReader();
             reader.readAsDataURL(files[0]);
@@ -54,31 +63,28 @@ export default function FormularioPostulacion() {
             // Actualiza el array de answers para mantener el formato correcto
             const updatedAnswers = [
                 ...answers.filter(answer => answer.clave !== name), // Elimina entradas previas de la misma pregunta
-                { clave: name, valor: value }, // Agrega la nueva respuesta
+                {clave: name, valor: value}, // Agrega la nueva respuesta
             ];
             setAnswers(updatedAnswers);
-    
+
             // También actualiza formData si es necesario
             setFormData((prevData) => ({
                 ...prevData,
                 answers: updatedAnswers,
             }));
-        
+
         } else {
             setFormData((prevData) => ({
                 ...prevData,
                 [name]: value,
             }));
         }
-    
-        console.log(answers);
-        setErrors((prevErrors) => ({ ...prevErrors, [name]: '' }));
+        setErrors((prevErrors) => ({...prevErrors, [name]: ''}));
     };
-    
+
 
     // Validadores de Steps
     const validateCV = () => {
-        console.log('formData al validar CV: ', formData);
         const newErrors = {};
         if (!formData.cv) newErrors.cv = 'El CV es requerido';
         setErrors(newErrors);
@@ -86,7 +92,6 @@ export default function FormularioPostulacion() {
     }
 
     const validateCandidateData = () => {
-        console.log('formData al validar datos de candidato: ', formData);
         const newErrors = {};
         if (!formData.candidateFirstName.trim()) newErrors.candidateFirstName = 'El nombre es requerido';
         if (!formData.candidateLastName.trim()) newErrors.candidateLastName = 'El apellido es requerido';
@@ -98,16 +103,6 @@ export default function FormularioPostulacion() {
 
     const validateAnswers = () => {
         const newErrors = {};
-
-        /*
-        console.log('formData al validar respuestas: ', formData);
-        questions.forEach(question => {
-            if (!answers[question.id]) {
-                newErrors[question.id] = `Debe seleccionar una respuesta`;
-            }
-        });
-        setErrors(newErrors);
-        */
         return Object.keys(newErrors).length === 0;
     }
 
@@ -188,15 +183,22 @@ export default function FormularioPostulacion() {
                 headers: {
                     "Content-Type": "application/json"
                 },
-                body: JSON.stringify({processId: formData.processId, fieldsToUpdate: {candidate_name: formData.candidateFirstName,
-                    candidate_lastname: formData.candidateLastName,
-                    candidate_email: formData.candidateEmail,
-                    candidate_phone: formData.candidateNumber}, answers: formData.answers})
+                body: JSON.stringify({
+                    processId: formData.processId, fieldsToUpdate: {
+                        candidate_name: formData.candidateFirstName,
+                        candidate_lastname: formData.candidateLastName,
+                        candidate_email: formData.candidateEmail,
+                        candidate_phone: formData.candidateNumber
+                    }, answers: formData.answers
+                })
             })
+
+            if (response.status === 200) {
+                setSuccess(true)
+            }
 
             const result = await response.json()
 
-            console.log('After PUT', response)
 
         } catch (e) {
             console.error(e)
@@ -212,21 +214,20 @@ export default function FormularioPostulacion() {
             if (!validateCV()) {
                 return;
             }
-            postCv();
+            postCv()
         }
-        if (activeStep === 1) {
-            if (!validateCandidateData()) {
-                return;
-            }
-        }
-        if (activeStep === 2 && !validateAnswers()) {
+        if (activeStep === 1 && !validateCandidateData()) {
             return;
         }
-        if (activeStep === 3) {
+        if (activeStep === 2 && Object.keys(questions).length > 0 && !validateAnswers()) {
+            return;
+        }
+        if (activeStep === steps.length - 1) {
             updateCandidateData();
         }
         setActiveStep((prevActiveStep) => prevActiveStep + 1);
     };
+
     const handleBack = () => {
         setActiveStep((prevActiveStep) => prevActiveStep - 1);
     };
@@ -244,19 +245,30 @@ export default function FormularioPostulacion() {
                         <ValidarDatosForm formData={formData} handleInputChange={handleInputChange} errors={errors}/>)
                 );
             case 2:
-                return (
-                    loading ? (<p>Cargando...</p>) : (
-                        <RespuestasForm questions={questions} answers={answers} handleInputChange={handleInputChange}
-                                        errors={errors}/>)
-                )
-            case 3:
+                if (Object.keys(questions).length > 0) {
+                    return (
+                        <RespuestasForm
+                            questions={questions}
+                            answers={answers}
+                            handleInputChange={handleInputChange}
+                            errors={errors}
+                        />
+                    );
+                }
                 return (
                     <ConfirmarDatosForm formData={formData} questions={questions} cvName={cvName}/>
-                )
+                );
+            case 3:
+                if (Object.keys(questions).length > 0) {
+                    return (
+                        <ConfirmarDatosForm formData={formData} questions={questions} cvName={cvName}/>
+                    );
+                }
+                return (success ? <p>Información enviada con éxito</p> :
+                    null)
             case 4:
-                return (
-                    loading ? (<p>Cargando...</p>) : (<p>Información enviada con éxito</p>)
-                )
+                return (success ? <p>Información enviada con éxito</p> :
+                    null)
             default:
                 return null;
         }
@@ -290,36 +302,31 @@ export default function FormularioPostulacion() {
         fetchQuestions();
     }, [])
 
-    
 
     return (
         <Box sx={{width: '100%', maxWidth: 800, margin: 'auto', padding: 3}}>
             <h1>{searchData.searchName}</h1>
             <h6>{searchData.searchDescription}</h6>
             <Stepper activeStep={activeStep}>
-                <Step>
-                    <StepLabel>Seleccionar CV</StepLabel>
-                </Step>
-                <Step>
-                    <StepLabel>Validar datos</StepLabel>
-                </Step>
-                <Step>
-                    <StepLabel>Responder preguntas</StepLabel>
-                </Step>
-                <Step>
-                    <StepLabel>Confirmar datos</StepLabel>
-                </Step>
+                {steps.map((label, index) => (
+                    <Step key={index}>
+                        <StepLabel>{label}</StepLabel>
+                    </Step>
+                ))}
             </Stepper>
 
             <Box sx={{mt: 4}}>{renderStepContent(activeStep)}</Box>
 
             <Box sx={{display: 'flex', justifyContent: 'space-between', mt: 4}}>
-                {!loading && <Button onClick={handleBack} disabled={activeStep === 0}>
-                    Atrás
-                </Button>}
-                {activeStep !== 4 && !loading && (<Button variant="contained" color="primary" onClick={handleNext}>
-                    {activeStep === 3 ? 'Enviar Postulación' : 'Siguiente'}
-                </Button>)}
+                {!loading &&
+                    <Button onClick={handleBack} disabled={activeStep === 0 || activeStep === steps.length}>
+                        Atrás
+                    </Button>}
+                {activeStep !== steps.length && !loading && (
+                    <Button variant="contained" color="primary" onClick={handleNext}>
+                        {activeStep === steps.length - 1 ? 'Enviar Postulación' : 'Siguiente'}
+                    </Button>
+                )}
             </Box>
         </Box>
 

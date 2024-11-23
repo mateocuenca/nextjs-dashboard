@@ -94,7 +94,8 @@ export const addProcess = async (req, res) => {
     const cv = req.body.cv;
     const analysys = req.body.analysys;
     const busqueda = req.body.busqueda
-    const uuid = uuidv4() 
+    const uuid = uuidv4()
+
     try {
         const nombreTemp = uuid
         const directorio = `./busquedas/${busqueda}/${nombreTemp}`
@@ -113,6 +114,14 @@ export const addProcess = async (req, res) => {
         }
         });
 
+        const conn = await connection.getConnection();
+
+        // Obtener el Job description
+        const [jobDescription] = await conn.query(
+            `SELECT s.description FROM Searches s WHERE s.uuid = ?`,
+            [busqueda]
+        );
+
         await injestDocs (undefined, directorio)
 
         const llmA = new OpenAI({ modelName: "gpt-4o"});
@@ -122,8 +131,8 @@ export const addProcess = async (req, res) => {
           directory,
           new OpenAIEmbeddings()
           );
-          const jobDescription = 'analista de qa, se requiere 3 anos de experiencia y conocimientos de sql'
-          const question = `Devuelve el resultado en formato json. El archivo analizado es un cv. necesito que compares el cv con la descripcion del puesto: "${jobDescription}". Devuelve un porcentaje de afinidad sin simbolo de %, solo el numero  y una justificacion, ademas el nombre y apellido, email y telefono. formato de respuesta debe ser: cumple_los_requisitos: si o no,  coincidencia: porcetaje_de_afinidad, justificacion: justificacion del analisis, nombre: nombre del candidato, apellido: apellido del candidato, email: email del candidato, telefono: telefono del candidato. devuelve el resultado en formato json. si no sabes la respuesta. devuelve un json con el formato justificacion: no se la respuesta. no incluyas json o backticks en la respuesta`; //question goes here. 
+
+          const question = `Devuelve el resultado en formato json. El archivo analizado es un cv. necesito que compares el cv con la descripcion del puesto: "${jobDescription[0].description}". Devuelve un porcentaje de afinidad sin simbolo de %, solo el numero  y una justificacion, ademas el nombre y apellido, email y telefono. formato de respuesta debe ser: cumple_los_requisitos: si o no,  coincidencia: porcetaje_de_afinidad, justificacion: justificacion del analisis, nombre: nombre del candidato, apellido: apellido del candidato, email: email del candidato, telefono: telefono del candidato. devuelve el resultado en formato json. si no sabes la respuesta. devuelve un json con el formato justificacion: no se la respuesta. no incluyas json o backticks en la respuesta`; //question goes here.
 
           const result = await loadedVectorStore.similaritySearch(question, 1);
           const resA = await chainA.call({
@@ -133,8 +142,6 @@ export const addProcess = async (req, res) => {
           console.log(resA.text)
           const res1 = JSON.parse(resA.text)
 
-        const conn = await connection.getConnection();
-
 
         const [insert] = await conn.execute('INSERT INTO Process (uuid, candidate_name, candidate_lastname, candidate_phone, candidate_email, searchId, coincidence, cv, analysys) values (?, ?, ?, ?, ?, ?, ? ,?, ?)', [uuid, res1.nombre,res1.apellido, res1.telefono, res1.email, searchId, res1.coincidencia, cv, res1.justificacion]);
         
@@ -142,6 +149,23 @@ export const addProcess = async (req, res) => {
 
         // Obtén el ID de la fila recién insertada
         const processId = insert.insertId;
+
+
+        // Determinar y asignar el estado inicial
+        const [states] = await conn.query(
+            `SELECT ss.id FROM SearchStates ss WHERE searchId = ? LIMIT 1`,
+            [searchId]
+        );
+
+        if (states.length > 0) {
+            await conn.query(
+                'UPDATE Process SET status = ? WHERE id = ?',
+                [states[0].id, processId]
+            );
+        }
+
+        conn.release();
+
 
         res.status(200).json({
             success: true,
@@ -169,9 +193,16 @@ export const editProcess = async (req, res = response) => {
 
     try {
         const [result] = await connection.query(`UPDATE Process SET ? WHERE id = ?`, [fieldsToUpdate, id]);
-        for (let i =0; i<answers.length; i++){
-            const [result1] = await connection.query('INSERT INTO rrhh.CandidateAnswers (processId, questionId, answerId) VALUES (?, ?, ?)', [processId, answers[i].clave, answers[i].valor]);
 
+        // Manejo opcional de answers
+        const answers = req.body.answers || [];
+        const processId = req.body.processId;
+
+        if (answers.length > 0 && processId) {
+            for (let i = 0; i < answers.length; i++) {
+                const [result1] = await connection.query('INSERT INTO rrhh.CandidateAnswers (processId, questionId, answerId) VALUES (?, ?, ?)', [processId, answers[i].clave, answers[i].valor]);
+
+            }
         }
 
         const [search] = await connection.query(`SELECT searchId from Process p WHERE id = ?`, [ id ]);
@@ -179,7 +210,7 @@ export const editProcess = async (req, res = response) => {
         const [states] = await connection.query(`SELECT ss.id FROM SearchStates ss 
                                                     WHERE searchId = ?`, [ search[0].searchId]);
 
-        const [insertState] = await connection.query('UPDATE Process SET status =  ? WHERE id = ?', [states[0].id, id]);
+        // const [insertState] = await connection.query('UPDATE Process SET status =  ? WHERE id = ?', [states[0].id, id]);
 ;
 
         res.status(200).json(result);

@@ -5,10 +5,10 @@ import { validateJWT } from "../Helpers/jwtValidator.js";
 
 const router = express.Router();
 
-router.get('/', [], getSearches);
+router.get('/', [validateJWT], getSearches);
 router.get('/:id', [], getSearch);
-router.post('/', [], addSearch);
-router.put('/:id', [], editSearch);
+router.post('/', [validateJWT], addSearch);
+router.put('/:id', [validateJWT], editSearch);
 router.delete('/:id', [validateJWT], deleteSearch);
 
 export default router;

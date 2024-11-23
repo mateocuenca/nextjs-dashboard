@@ -1,8 +1,7 @@
-import { createBrowserRouter } from "react-router-dom";
+import {createBrowserRouter} from "react-router-dom";
 import LayoutAuth from "../layouts/LayoutAuth";
-import Proceso from "../pages/Procesos/Proceso";
+import Proceso from "../pages/Procesos/Subcomponents/Proceso.jsx";
 import Procesos from "../pages/Procesos/Procesos";
-import AgregarBusqueda from "../pages/Busquedas/AgregarBusqueda";
 import Busquedas from "../pages/Busquedas/Busquedas";
 import LayoutUser from "../layouts/LayoutUser";
 import Login from "../pages/Auth/Login";

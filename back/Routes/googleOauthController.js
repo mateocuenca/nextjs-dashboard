@@ -1,11 +1,12 @@
 import express from "express";
 
 import { getAuthUrl, createMeetEventWithParticipants} from "../Controllers/googleOauthController.js";
+import {validateJWT} from "../Helpers/jwtValidator.js";
 
 const router = express.Router();
 
-router.get('/', getAuthUrl);
-router.get('/google', createMeetEventWithParticipants);
+router.get('/', [validateJWT], getAuthUrl);
+router.get('/google', [validateJWT], createMeetEventWithParticipants);
 
 
 

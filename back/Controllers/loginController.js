@@ -26,7 +26,7 @@ export const login = async (req, res = response) => {
       return res.status(400).json({ success: false, error: true, msg: 'Contraseña no válida' });
     }
 
-    const token = jwt.sign({ id: usuario.id}, process.env.TOKEN_SECRET, { expiresIn: '1h' });
+    const token = jwt.sign({ id: usuario.id}, process.env.TOKEN_SECRET, { expiresIn: '3h' });
 
     res.status(200).json({ success: true, token: token});
 
